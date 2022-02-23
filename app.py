@@ -4,9 +4,9 @@ from dash.dependencies import Output, Input
 import dash_bootstrap_components as dbc
 import pandas as pd
 import numpy as np
+from datetime import date
 
-
-#url = "https://raw.githubusercontent.com/realpython/materials/master/python-dash/additional_files/avocado.csv"
+# url = "https://raw.githubusercontent.com/realpython/materials/master/python-dash/additional_files/avocado.csv"
 # data = pd.read_csv(url, index_col=0)
 # data = data.query("type == 'conventional' and curriculum == 'Albany'")
 
@@ -31,7 +31,7 @@ cards = [
         [
             html.P("Students Searching", className="card-text"),
             html.H2(
-                f"{len(searching)}/{len(data)}({(len(searching) / len(data))*100:.2f}%) ", className="card-title"),
+                f"{len(searching)}/{len(data)} ({(len(searching) / len(data))*100:.2f}%) ", className="card-title"),
 
         ],
         body=True,
@@ -55,7 +55,7 @@ app.layout = html.Div(
                 html.H1(children="IronHack Analytics",
                         className="header-title"),
                 # html.Img(src=app.get_asset_url("ih_logo.png"),
-                #          style={"float": "top-left", "height": 150}),
+                #          style={"float": "center", "height": 150, "width": "auto"}),
                 html.P(
                     children="Analyze the time to job of"
                     " Ironhack Students in Lisbon"
@@ -140,11 +140,21 @@ app.layout = html.Div(
             ],
             className="wrapper",
         ),
+        html.Hr(),
+        html.P(children=[
+            f"© {date.today().year} Ironhack Student Dashboard powered by ",
+            html.A("Python", href="https://www.python.org"),
+            " and ",
+            html.A("Dash", href="https://plotly.com/dash/"),
+            ". Developed with 💙 by ",
+            html.A("Gonçalo Calvinho", href="https://github.com/calvinhus"),
+            "  🐍"
+        ], className="footer"),
     ]
 )
 
 
-@app.callback(
+@ app.callback(
     [Output("price-chart", "figure"), Output("volume-chart", "figure")],
     [
         Input("curriculum-filter", "value"),
@@ -172,12 +182,12 @@ def update_charts(curriculum, cohort, start_date, end_date):
         ],
         "layout": {
             "title": {
-                "text": "Average Price of Avocados",
+                "text": "Applications Conversion Rate",
                 "x": 0.05,
                 "xanchor": "left",
             },
             "xaxis": {"fixedrange": True},
-            "yaxis": {"tickprefix": "$", "fixedrange": True},
+            "yaxis": {"fixedrange": True},
             "colorway": ["#17B897"],
         },
     }
@@ -191,7 +201,7 @@ def update_charts(curriculum, cohort, start_date, end_date):
             },
         ],
         "layout": {
-            "title": {"text": "Avocados Sold", "x": 0.05, "xanchor": "left"},
+            "title": {"text": "Interviews Conversion Rate", "x": 0.05, "xanchor": "left"},
             "xaxis": {"fixedrange": True},
             "yaxis": {"fixedrange": True},
             "colorway": ["#E12D39"],

@@ -53,7 +53,6 @@ body {
     max-width: 1024px;
     padding-right: 10px;
     padding-left: 10px;
-    margin-top: 32px;
 }
 
 .card-text {
@@ -88,4 +87,8 @@ body {
     margin-bottom: 6px;
     font-weight: bold;
     color: #31BCF5;
+}
+
+.footer {
+    text-align: center;
 }
