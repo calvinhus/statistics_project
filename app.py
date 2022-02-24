@@ -184,13 +184,27 @@ def update_figure(curriculum, format):
     searching = data[(data.status == 'Actively Seeking') |
                      (data.status == 'Passively Seeking')]
     total_hired = data[data['hired'] == 1]
+
     total_mask = ((data.curriculum == curriculum)
                   & (data.format == format))
-    if curriculum == 'all_values' or format == 'all_format':
+
+    if curriculum == 'all_values' and format == 'all_format':
         filtered = filtered
         total_students_filter = len(data)
         total_students_searching = len(searching)
         total_hired = len(total_hired)
+    elif curriculum == 'all_values' and format != 'all_format':
+        form_mask = ((data.format == format))
+        filtered = filtered.loc[form_mask, :]
+        total_students_filter = len(data.loc[form_mask, :])
+        total_students_searching = len(searching.loc[form_mask, :])
+        total_hired = len(total_hired.loc[form_mask, :])
+    elif curriculum != 'all_values' and format == 'all_format':
+        curr_mask = ((data.curriculum == curriculum))
+        filtered = filtered.loc[curr_mask, :]
+        total_students_filter = len(data.loc[curr_mask, :])
+        total_students_searching = len(searching.loc[curr_mask, :])
+        total_hired = len(total_hired.loc[curr_mask, :])
     else:
         mask = ((filtered.curriculum == curriculum)
                 & (filtered.format == format))
