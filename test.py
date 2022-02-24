@@ -64,7 +64,7 @@ app.layout = html.Div(
         html.Div(
             children=[
                 html.P(children="🖥️", className="header-emoji"),
-                html.H1(children="TEST APP",
+                html.H1(children="TEST Ironhack Analytics",
                         className="header-title"),
                 html.P(
                     children="Analyze the time to job of"
@@ -87,13 +87,12 @@ app.layout = html.Div(
                                  className="menu-title"),
                         dcc.Dropdown(
                             id="curriculum-filter",
-                            options=[
-                                {"label": curriculum, "value": curriculum}
-                                for curriculum in np.sort(data.curriculum.unique())
-                            ],
-                            value="",
+                            options=[{'label': 'All', 'value': 'all_values'}] + [
+                                {'label': x, 'value': x} for x in np.sort(data.curriculum.unique())],
+                            value='all_values',
+                            placeholder='aaqaaaa',
                             clearable=False,
-                            className="dropdown",
+                            className="dropdown"
                         ),
                     ]
                 ),
@@ -105,7 +104,7 @@ app.layout = html.Div(
                             options=[
                                 {"label": format, "value": format}
                                 for format in np.sort(data.format.unique())],
-                            value="",
+                            value="FT",
                             clearable=False,
                             className="dropdown",
                         ),
@@ -160,20 +159,51 @@ app.layout = html.Div(
     ]
 )
 
+flag = False
 
-@app.callback(
+
+@ app.callback(
     [Output("graph1", "figure"), Output(
         "graph2", "figure"), Output("graph3", "figure")],
     [Input('curriculum-filter', 'value'), Input('format-filter', 'value')])
-def update_figure(year, month):
-    # filtered_df = data[data.year == selected_year]
+def update_figure(curriculum, format):
 
-    filtered_df = data.groupby(['curriculum', 'cohort', 'graduation_date', 'month_year']).agg(
+    filtered = data.groupby(['curriculum', 'cohort', 'format', 'graduation_date', 'month_year']).agg(
         {'conv_applied_interview_prcnt': 'mean', 'conv_interview_hired_prcnt': 'mean', 'index': 'count'}).sort_values(by='graduation_date', ascending=True).reset_index()
 
-    hired = data[data['hired'] == 1]
+    hired = data[data['hired'] == 1].groupby(['curriculum', 'graduation_date']).agg(
+        {'hired': 'count'}).reset_index()
 
-    fig1 = px.scatter(filtered_df, x="month_year",
+    if curriculum == 'all_values':
+        filtered = filtered
+    else:
+        mask = ((filtered.curriculum == curriculum)
+                & (filtered.format == format))
+        filtered = filtered.loc[mask, :]
+
+    # fig1 = {
+    #     "data": [
+    #         {
+    #             "x": filter_df.month_year,
+    #             "y": filter_df.conv_applied_interview_prcnt,
+    #             # "type": "Scatter",
+    #             "type": 'scatter',
+    #             "hovertemplate": "%{y:.2f}<extra></extra>",
+    #         },
+    #     ],
+    #     "layout": {
+    #         "title": {
+    #             "text": "Applied to Interview Conversion",
+    #             "x": 0.05,
+    #             "xanchor": "left",
+    #         },
+    #         "xaxis": {"fixedrange": True},
+    #         "yaxis": {"ticksuffix": "%", "fixedrange": True},
+    #         "colorway": ["#31BCF5"],
+    #     },
+    # }
+
+    fig1 = px.scatter(filtered, x="month_year",
                       y="conv_applied_interview_prcnt", color="curriculum", size="index", size_max=30,
                       labels={
                           "conv_applied_interview_prcnt": "Conversion (%)",
@@ -182,7 +212,7 @@ def update_figure(year, month):
                       title="Applied to Interview Conversion")
     # color="curriculum", hover_name="cohort", size=
     # log_x=True, size_max=55)
-    fig2 = px.scatter(filtered_df, x="month_year",
+    fig2 = px.scatter(filtered, x="month_year",
                       y="conv_interview_hired_prcnt", color="curriculum", size="index", size_max=30,
                       labels={
                           "conv_interview_hired_prcnt": "Conversion (%)",
@@ -190,8 +220,8 @@ def update_figure(year, month):
                           "curriculum": "Curriculum"},
                       title="Interview to Hired Conversion")
 
-    fig3 = px.bar(hired.groupby(['curriculum']).agg({'hired': 'count'}).reset_index(), x="curriculum",
-                  y="hired", barmode="group", color="curriculum",title="Percentage of Students Hired",
+    fig3 = px.bar(hired, x="curriculum",
+                  y="hired", barmode="group", color="curriculum", hover_name="graduation_date", title="Percentage of Students Hired",
                   labels={
                       "hired": "Percentage",
                       "curriculum": "Curriculum"})
@@ -199,6 +229,8 @@ def update_figure(year, month):
     fig1.update_layout(transition_duration=500)
     fig2.update_layout(transition_duration=500)
     fig3.update_layout(transition_duration=500)
+
+    flag = True
 
     return fig1, fig2, fig3
 

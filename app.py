@@ -87,13 +87,12 @@ app.layout = html.Div(
                                  className="menu-title"),
                         dcc.Dropdown(
                             id="curriculum-filter",
-                            options=[
-                                {"label": curriculum, "value": curriculum}
-                                for curriculum in np.sort(data.curriculum.unique())
-                            ],
-                            value="",
+                            options=[{'label': 'All', 'value': 'all_values'}] + [
+                                {'label': x, 'value': x} for x in np.sort(data.curriculum.unique())],
+                            value='all_values',
+                            placeholder='aaqaaaa',
                             clearable=False,
-                            className="dropdown",
+                            className="dropdown"
                         ),
                     ]
                 ),
@@ -105,7 +104,7 @@ app.layout = html.Div(
                             options=[
                                 {"label": format, "value": format}
                                 for format in np.sort(data.format.unique())],
-                            value="",
+                            value="FT",
                             clearable=False,
                             className="dropdown",
                         ),
@@ -161,37 +160,46 @@ app.layout = html.Div(
 )
 
 
-@app.callback(
+@ app.callback(
     [Output("graph1", "figure"), Output(
         "graph2", "figure"), Output("graph3", "figure")],
     [Input('curriculum-filter', 'value'), Input('format-filter', 'value')])
-def update_figure(year, month):
-    # filtered_df = data[data.year == selected_year]
+def update_figure(curriculum, format):
 
-    filtered_df = data.groupby(['curriculum', 'cohort', 'graduation_date', 'month_year']).agg(
+    filtered = data.groupby(['curriculum', 'cohort', 'format', 'graduation_date', 'month_year']).agg(
         {'conv_applied_interview_prcnt': 'mean', 'conv_interview_hired_prcnt': 'mean', 'index': 'count'}).sort_values(by='graduation_date', ascending=True).reset_index()
 
-    hired = data[data['hired'] == 1]
+    hired = data[data['hired'] == 1].groupby(['curriculum', 'graduation_date']).agg(
+        {'hired': 'count'}).reset_index()
 
-    fig1 = px.scatter(filtered_df, x="month_year",
+    if curriculum == 'all_values':
+        filtered = filtered
+    else:
+        mask = ((filtered.curriculum == curriculum)
+                & (filtered.format == format))
+        filtered = filtered.loc[mask, :]
+
+    fig1 = px.scatter(filtered, x="month_year",
                       y="conv_applied_interview_prcnt", color="curriculum", size="index", size_max=30,
                       labels={
                           "conv_applied_interview_prcnt": "Conversion (%)",
                           "month_year": "Cohort Date",
-                          "curriculum": "Curriculum"},
+                          "curriculum": "Curriculum",
+                          "index": "Total Students"},
                       title="Applied to Interview Conversion")
     # color="curriculum", hover_name="cohort", size=
     # log_x=True, size_max=55)
-    fig2 = px.scatter(filtered_df, x="month_year",
+    fig2 = px.scatter(filtered, x="month_year",
                       y="conv_interview_hired_prcnt", color="curriculum", size="index", size_max=30,
                       labels={
                           "conv_interview_hired_prcnt": "Conversion (%)",
                           "month_year": "Cohort Date",
-                          "curriculum": "Curriculum"},
+                          "curriculum": "Curriculum",
+                          "index": "Total Students"},
                       title="Interview to Hired Conversion")
 
-    fig3 = px.bar(hired.groupby(['curriculum', 'graduation_date']).agg({'hired': 'count'}).reset_index(), x="curriculum",
-                  y="hired", barmode="group", color="curriculum", hover_name="graduation_date", title="Percentage of Students Hired",
+    fig3 = px.bar(hired, x="curriculum",
+                  y="hired", barmode="group", color="curriculum", title="Percentage of Students Hired",
                   labels={
                       "hired": "Percentage",
                       "curriculum": "Curriculum"})
