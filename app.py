@@ -168,8 +168,8 @@ app.layout = html.Div(
 def update_figure(year, month):
     # filtered_df = data[data.year == selected_year]
 
-    filtered_df = data.groupby(['curriculum', 'cohort', 'month_year']).agg(
-        {'conv_applied_interview_prcnt': 'mean', 'conv_interview_hired_prcnt': 'mean', 'index': 'count'}).reset_index()
+    filtered_df = data.groupby(['curriculum', 'cohort', 'graduation_date', 'month_year']).agg(
+        {'conv_applied_interview_prcnt': 'mean', 'conv_interview_hired_prcnt': 'mean', 'index': 'count'}).sort_values(by='graduation_date', ascending=True).reset_index()
 
     hired = data[data['hired'] == 1]
 

@@ -137,6 +137,7 @@ app.layout = html.Div(
                     ),
                     className="card",
                 ),
+
             ],
             className="wrapper",
         ),
