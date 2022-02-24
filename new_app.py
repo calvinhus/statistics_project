@@ -63,7 +63,7 @@ app.layout = html.Div(
         html.Div(
             children=[
                 html.P(children="🖥️", className="header-emoji"),
-                html.H1(children="IronHack Analytics",
+                html.H1(children="Ironhack Analytics",
                         className="header-title"),
                 html.P(
                     children="Analyze the time to job of"
@@ -133,7 +133,7 @@ app.layout = html.Div(
                 ),
                 html.Div(
                     children=dcc.Graph(
-                        id="volume-chart",
+                        id="graph3",
                         config={"displayModeBar": False},
                     ),
                     className="card",
@@ -158,13 +158,20 @@ app.layout = html.Div(
 
 
 @app.callback(
-    [Output("graph1", "figure"), Output("graph2", "figure")],
-    Input('curriculum-filter', 'value'))
-def update_figure(selected_year):
+    [Output("graph1", "figure"), Output(
+        "graph2", "figure"), Output("graph3", "figure")],
+    [Input('curriculum-filter', 'value'), Input('format-filter', 'value')])
+def update_figure(year, month):
     # filtered_df = data[data.year == selected_year]
+
     filtered_df = data.groupby(['curriculum', 'cohort', 'month_year']).agg(
         {'conv_applied_interview': 'mean', 'conv_interview_hired': 'mean', 'index': 'count'}).reset_index()
 
+    hired = data[data['hired'] == 1]
+    hired_df = pd.DataFrame({
+        "curriculum": [h for h in hired.curriculum],
+        "count": [h for h in hired.hired]
+    })
     fig1 = px.scatter(filtered_df, x="month_year",
                       y="conv_applied_interview", color="curriculum", size="index", size_max=30,
                       labels={
@@ -181,10 +188,18 @@ def update_figure(selected_year):
                           "month_year": "Cohort Date",
                           "curriculum": "Curriculum"},
                       title="Interview to Hired Conversion")
+
+    fig3 = px.bar(hired_df, x="curriculum",
+                  y="count", barmode="group", color="curriculum", title="Percentage of Students Hired",
+                  labels={
+                      "count": "Percentage",
+                      "curriculum": "Curriculum"})
+
     fig1.update_layout(transition_duration=500)
     fig2.update_layout(transition_duration=500)
+    fig3.update_layout(transition_duration=500)
 
-    return fig1, fig2
+    return fig1, fig2, fig3
 
 
 if __name__ == "__main__":
