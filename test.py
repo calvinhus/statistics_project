@@ -190,8 +190,8 @@ def update_figure(year, month):
                           "curriculum": "Curriculum"},
                       title="Interview to Hired Conversion")
 
-    fig3 = px.bar(hired.groupby(['curriculum', 'graduation_date']).agg({'hired': 'count'}).reset_index(), x="curriculum",
-                  y="hired", barmode="group", color="curriculum", hover_name="graduation_date", title="Percentage of Students Hired",
+    fig3 = px.bar(hired.groupby(['curriculum']).agg({'hired': 'count'}).reset_index(), x="curriculum",
+                  y="hired", barmode="group", color="curriculum",title="Percentage of Students Hired",
                   labels={
                       "hired": "Percentage",
                       "curriculum": "Curriculum"})
