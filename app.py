@@ -152,7 +152,10 @@ app.layout = html.Div(
             html.A("Dash", href="https://plotly.com/dash/"),
             ". Developed with 💙 by ",
             html.A("Gonçalo Calvinho", href="https://github.com/calvinhus"),
-            "  🐍"
+            "  🐍",
+            " and ",
+            html.A("Ana Matias", href="https://github.com/ana17mat"),
+            " 🐯"
         ], className="footer"),
     ]
 )
