@@ -18,7 +18,7 @@ body {
 }
 
 .header-title {
-    color: #FFFFFF;
+    color: #f8f8f8;
     font-size: 48px;
     font-weight: bold;
     text-align: center;
@@ -39,11 +39,13 @@ body {
     padding-right: 10px;
     padding-left: 10px;
     margin-top: 32px;
+    background-color: #f8f8f8;
 }
 
 .card {
     margin-bottom: 24px;
     box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.18);
+    background-color: #f8f8f8;
 }
 
 .card-title {
@@ -66,7 +68,7 @@ body {
     justify-content: space-evenly;
     padding-top: 24px;
     margin: -80px auto 0 auto;
-    background-color: #FFFFFF;
+    background-color: #f8f8f8;
     box-shadow: 0 4px 6px 0 rgba(0, 0, 0, 0.18);
 }
 
