@@ -64,7 +64,7 @@ app.layout = html.Div(
         html.Div(
             children=[
                 html.P(children="🖥️", className="header-emoji"),
-                html.H1(children="TEST Ironhack Analytics",
+                html.H1(children="Ironhack Analytics",
                         className="header-title"),
                 html.P(
                     children="Analyze the time to job of"
@@ -159,8 +159,6 @@ app.layout = html.Div(
     ]
 )
 
-flag = False
-
 
 @ app.callback(
     [Output("graph1", "figure"), Output(
@@ -181,34 +179,13 @@ def update_figure(curriculum, format):
                 & (filtered.format == format))
         filtered = filtered.loc[mask, :]
 
-    # fig1 = {
-    #     "data": [
-    #         {
-    #             "x": filter_df.month_year,
-    #             "y": filter_df.conv_applied_interview_prcnt,
-    #             # "type": "Scatter",
-    #             "type": 'scatter',
-    #             "hovertemplate": "%{y:.2f}<extra></extra>",
-    #         },
-    #     ],
-    #     "layout": {
-    #         "title": {
-    #             "text": "Applied to Interview Conversion",
-    #             "x": 0.05,
-    #             "xanchor": "left",
-    #         },
-    #         "xaxis": {"fixedrange": True},
-    #         "yaxis": {"ticksuffix": "%", "fixedrange": True},
-    #         "colorway": ["#31BCF5"],
-    #     },
-    # }
-
     fig1 = px.scatter(filtered, x="month_year",
                       y="conv_applied_interview_prcnt", color="curriculum", size="index", size_max=30,
                       labels={
                           "conv_applied_interview_prcnt": "Conversion (%)",
                           "month_year": "Cohort Date",
-                          "curriculum": "Curriculum"},
+                          "curriculum": "Curriculum",
+                          "index": "Total Students"},
                       title="Applied to Interview Conversion")
     # color="curriculum", hover_name="cohort", size=
     # log_x=True, size_max=55)
@@ -217,11 +194,12 @@ def update_figure(curriculum, format):
                       labels={
                           "conv_interview_hired_prcnt": "Conversion (%)",
                           "month_year": "Cohort Date",
-                          "curriculum": "Curriculum"},
+                          "curriculum": "Curriculum",
+                          "index": "Total Students"},
                       title="Interview to Hired Conversion")
 
     fig3 = px.bar(hired, x="curriculum",
-                  y="hired", barmode="group", color="curriculum", hover_name="graduation_date", title="Percentage of Students Hired",
+                  y="hired", barmode="group", color="curriculum", title="Percentage of Students Hired",
                   labels={
                       "hired": "Percentage",
                       "curriculum": "Curriculum"})
@@ -229,8 +207,6 @@ def update_figure(curriculum, format):
     fig1.update_layout(transition_duration=500)
     fig2.update_layout(transition_duration=500)
     fig3.update_layout(transition_duration=500)
-
-    flag = True
 
     return fig1, fig2, fig3
 
