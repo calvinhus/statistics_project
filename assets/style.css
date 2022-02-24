@@ -1,12 +1,12 @@
 body {
     font-family: "Lato", sans-serif;
     margin: 0;
-    background-color: #F7F7F7;
+    background-color: white;
 }
 
 .header {
     background-color: #31BCF5;
-    height: 288px;
+    height: 220px;
     padding: 16px 0 0 0;
 }
 
