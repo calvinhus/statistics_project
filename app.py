@@ -15,8 +15,6 @@ data["graduation_date"] = pd.to_datetime(
 
 data.sort_values("graduation_date", inplace=True)
 
-searching = data.query(
-    "status == 'Actively Seeking' or status == 'Passively Seeking'")
 
 hired = data.query(
     "hired == 1")
@@ -31,9 +29,9 @@ cards = [
     dbc.Card(
         [
             html.P("Total Students", className="card-text"),
-            html.H2(f"{len(data)}",
-                    className="card-title"),
-            html.H6("100%", className="card-title",
+            #            html.H2(f"{len(data)}", className="card-title"),
+            html.H2(id='total-students', className="card-title"),
+            html.H6(id='total-students-percent', className="card-title",
                     style={'color': '#31BCF5'})
         ],
         body=True,
@@ -41,18 +39,18 @@ cards = [
     dbc.Card(
         [
             html.P("Students Searching", className="card-text"),
-            html.H2(f"{len(searching)}",
+            html.H2(id='total-students-searching',
                     className="card-title", ),
-            html.H6((f"{(len(searching) / len(data))*100:.2f}%"),
+            html.H6(id='total-students-searching-prcnt',
                     className="card-title", style={'color': '#31BCF5'})
         ],
         body=True,
     ),
     dbc.Card(
         [html.P("Students Hired", className="card-text"),
-            html.H2(f"{len(hired)}",
+            html.H2(id='total-hired',
                     className="card-title"),
-         html.H6((f"{(len(hired) / len(data))*100:.2f}%"),
+         html.H6(id='total-hired-prcnt',
                  className="card-title", style={'color': '#31BCF5'})
          ],
         body=True,
@@ -90,7 +88,6 @@ app.layout = html.Div(
                             options=[{'label': 'All', 'value': 'all_values'}] + [
                                 {'label': x, 'value': x} for x in np.sort(data.curriculum.unique())],
                             value='all_values',
-                            placeholder='aaqaaaa',
                             clearable=False,
                             className="dropdown"
                         ),
@@ -101,10 +98,9 @@ app.layout = html.Div(
                         html.Div(children="Format", className="menu-title"),
                         dcc.Dropdown(
                             id="format-filter",
-                            options=[
-                                {"label": format, "value": format}
-                                for format in np.sort(data.format.unique())],
-                            value="FT",
+                            options=[{'label': 'All', 'value': 'all_format'}] + [
+                                {'label': x, 'value': x} for x in np.sort(data.format.unique())],
+                            value='all_format',
                             clearable=False,
                             className="dropdown",
                         ),
@@ -122,21 +118,21 @@ app.layout = html.Div(
                         id="graph1",
                         config={"displayModeBar": False},
                     ),
-                    className="card",
+                    className="graph",
                 ),
                 html.Div(
                     children=dcc.Graph(
                         id="graph2",
                         config={"displayModeBar": False},
                     ),
-                    className="card",
+                    className="graph",
                 ),
                 html.Div(
                     children=dcc.Graph(
                         id="graph3",
                         config={"displayModeBar": False},
                     ),
-                    className="card",
+                    className="graph",
                 ),
             ],
             className="wrapper",
@@ -161,9 +157,22 @@ app.layout = html.Div(
 
 
 @ app.callback(
-    [Output("graph1", "figure"), Output(
-        "graph2", "figure"), Output("graph3", "figure")],
-    [Input('curriculum-filter', 'value'), Input('format-filter', 'value')])
+    [
+        Output("graph1", "figure"),
+        Output("graph2", "figure"),
+        Output("graph3", "figure"),
+        Output('total-students', 'children'),
+        Output('total-students-percent', 'children'),
+        Output('total-students-searching', 'children'),
+        Output('total-students-searching-prcnt', 'children'),
+        Output('total-hired', 'children'),
+        Output('total-hired-prcnt', 'children')
+    ],
+    [
+        Input('curriculum-filter', 'value'),
+        Input('format-filter', 'value')
+    ]
+)
 def update_figure(curriculum, format):
 
     filtered = data.groupby(['curriculum', 'cohort', 'format', 'graduation_date', 'month_year']).agg(
@@ -172,12 +181,23 @@ def update_figure(curriculum, format):
     hired = data[data['hired'] == 1].groupby(['curriculum', 'graduation_date']).agg(
         {'hired': 'count'}).reset_index()
 
-    if curriculum == 'all_values':
+    searching = data[(data.status == 'Actively Seeking') |
+                     (data.status == 'Passively Seeking')]
+    total_hired = data[data['hired'] == 1]
+    total_mask = ((data.curriculum == curriculum)
+                  & (data.format == format))
+    if curriculum == 'all_values' or format == 'all_format':
         filtered = filtered
+        total_students_filter = len(data)
+        total_students_searching = len(searching)
+        total_hired = len(total_hired)
     else:
         mask = ((filtered.curriculum == curriculum)
                 & (filtered.format == format))
         filtered = filtered.loc[mask, :]
+        total_students_filter = len(data.loc[total_mask, :])
+        total_students_searching = len(searching.loc[total_mask, :])
+        total_hired = len(total_hired.loc[total_mask, :])
 
     fig1 = px.scatter(filtered, x="month_year",
                       y="conv_applied_interview_prcnt", color="curriculum", size="index", size_max=30,
@@ -208,7 +228,13 @@ def update_figure(curriculum, format):
     fig2.update_layout(transition_duration=500)
     fig3.update_layout(transition_duration=500)
 
-    return fig1, fig2, fig3
+    total_students_percent = f"{total_students_filter/(len(data))*100:.2f}%"
+    total_students_searching_percent = f"{total_students_searching/(len(data))*100:.2f}%"
+    total_hired_percent = f"{total_hired/(len(data))*100:.2f}%"
+    return fig1, fig2, fig3, \
+        total_students_filter, total_students_percent, \
+        total_students_searching, total_students_searching_percent, \
+        total_hired, total_hired_percent
 
 
 if __name__ == "__main__":
