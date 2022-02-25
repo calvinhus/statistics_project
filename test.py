@@ -98,10 +98,9 @@ app.layout = html.Div(
                         html.Div(children="Format", className="menu-title"),
                         dcc.Dropdown(
                             id="format-filter",
-                            options=[
-                                {"label": format, "value": format}
-                                for format in np.sort(data.format.unique())],
-                            value="FT",
+                            options=[{'label': 'All', 'value': 'all_format'}] + [
+                                {'label': x, 'value': x} for x in np.sort(data.format.unique())],
+                            value='all_format',
                             clearable=False,
                             className="dropdown",
                         ),
@@ -185,20 +184,40 @@ def update_figure(curriculum, format):
     searching = data[(data.status == 'Actively Seeking') |
                      (data.status == 'Passively Seeking')]
     total_hired = data[data['hired'] == 1]
-    total_mask = ((data.curriculum == curriculum)
-                  & (data.format == format))
-    if curriculum == 'all_values':
+    total_mask = ((filtered.curriculum == curriculum)
+                  & (filtered.format == format))
+
+    if curriculum == 'all_values' and format == 'all_format':
         filtered = filtered
         total_students_filter = len(data)
         total_students_searching = len(searching)
         total_hired = len(total_hired)
+    elif curriculum == 'all_values' and format != 'all_format':
+        mask2 = (data.format == format)
+        filtered = filtered.loc[(filtered.format == format), :]
+        total_students_filter = len(data.loc[mask2, :])
+        total_students_searching = len(searching.loc[mask2, :])
+        total_hired = len(total_hired.loc[mask2, :])
+    elif curriculum != 'all_values' and format == 'all_format':
+        mask3 = (data.curriculum == curriculum)
+        filtered = filtered.loc[(filtered.curriculum == curriculum), :]
+        total_students_filter = len(data.loc[mask3, :])
+        total_students_searching = len(searching.loc[mask3, :])
+        total_hired = len(total_hired.loc[mask3, :])
     else:
-        mask = ((filtered.curriculum == curriculum)
-                & (filtered.format == format))
-        filtered = filtered.loc[mask, :]
-        total_students_filter = len(data.loc[total_mask, :])
-        total_students_searching = len(searching.loc[total_mask, :])
-        total_hired = len(total_hired.loc[total_mask, :])
+        mask4 = ((data.format == format) & (data.curriculum == curriculum))
+        filtered = filtered.loc[total_mask, :]
+        total_students_filter = len(data.loc[mask4, :])
+        total_students_searching = len(searching.loc[mask4, :])
+        total_hired = len(total_hired.loc[mask4, :])
+
+    # else:
+    #     mask = ((filtered.curriculum == curriculum)
+    #             & (filtered.format == format))
+    #     filtered = filtered.loc[mask, :]
+    #     total_students_filter = len(data.loc[total_mask, :])
+    #     total_students_searching = len(searching.loc[total_mask, :])
+    #     total_hired = len(total_hired.loc[total_mask, :])
 
     fig1 = px.scatter(filtered, x="month_year",
                       y="conv_applied_interview_prcnt", color="curriculum", size="index", size_max=30,

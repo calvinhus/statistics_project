@@ -7,17 +7,11 @@ import pandas as pd
 import numpy as np
 from datetime import date
 import plotly.express as px
+import dataclean
 
-data = pd.read_csv("data/ironhack_careers_clean.csv")
+data = pd.read_csv("data/newcsv.csv")
+#data = dataclean.clean(df)
 
-data["graduation_date"] = pd.to_datetime(
-    data["graduation_date"], format="%Y-%m-%d")
-
-data.sort_values("graduation_date", inplace=True)
-
-
-hired = data.query(
-    "hired == 1")
 
 # Start the application
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -29,7 +23,6 @@ cards = [
     dbc.Card(
         [
             html.P("Total Students", className="card-text"),
-            #            html.H2(f"{len(data)}", className="card-title"),
             html.H2(id='total-students', className="card-title"),
             html.H6(id='total-students-percent', className="card-title",
                     style={'color': '#31BCF5'})
@@ -176,7 +169,7 @@ app.layout = html.Div(
 def update_figure(curriculum, format):
 
     filtered = data.groupby(['curriculum', 'cohort', 'format', 'graduation_date', 'month_year']).agg(
-        {'conv_applied_interview_prcnt': 'mean', 'conv_interview_hired_prcnt': 'mean', 'index': 'count'}).sort_values(by='graduation_date', ascending=True).reset_index()
+        {'conv_applied_interview_prcnt': 'mean', 'conv_interview_hired_prcnt': 'mean', 'id': 'count'}).sort_values(by='graduation_date', ascending=True).reset_index()
 
     hired = data[data['hired'] == 1].groupby(['curriculum', 'graduation_date']).agg(
         {'hired': 'count'}).reset_index()
@@ -189,23 +182,30 @@ def update_figure(curriculum, format):
                   & (data.format == format))
 
     if curriculum == 'all_values' and format == 'all_format':
+
         filtered = filtered
         total_students_filter = len(data)
         total_students_searching = len(searching)
         total_hired = len(total_hired)
+
     elif curriculum == 'all_values' and format != 'all_format':
+
         form_mask = ((data.format == format))
-        filtered = filtered.loc[form_mask, :]
+        filtered = data.loc[form_mask, :]
         total_students_filter = len(data.loc[form_mask, :])
         total_students_searching = len(searching.loc[form_mask, :])
         total_hired = len(total_hired.loc[form_mask, :])
+
     elif curriculum != 'all_values' and format == 'all_format':
-        curr_mask = ((data.curriculum == curriculum))
+
+        curr_mask = ((filtered.curriculum == curriculum))
         filtered = filtered.loc[curr_mask, :]
-        total_students_filter = len(data.loc[curr_mask, :])
+        total_students_filter = len(filtered.loc[curr_mask, :])
         total_students_searching = len(searching.loc[curr_mask, :])
         total_hired = len(total_hired.loc[curr_mask, :])
+
     else:
+
         mask = ((filtered.curriculum == curriculum)
                 & (filtered.format == format))
         filtered = filtered.loc[mask, :]
@@ -214,22 +214,22 @@ def update_figure(curriculum, format):
         total_hired = len(total_hired.loc[total_mask, :])
 
     fig1 = px.scatter(filtered, x="month_year",
-                      y="conv_applied_interview_prcnt", color="curriculum", size="index", size_max=30,
+                      y="conv_applied_interview_prcnt", color="curriculum", size="id", size_max=30,
                       labels={
                           "conv_applied_interview_prcnt": "Conversion (%)",
                           "month_year": "Cohort Date",
                           "curriculum": "Curriculum",
-                          "index": "Total Students"},
+                          "id": "Total Students"},
                       title="Applied to Interview Conversion")
     # color="curriculum", hover_name="cohort", size=
     # log_x=True, size_max=55)
     fig2 = px.scatter(filtered, x="month_year",
-                      y="conv_interview_hired_prcnt", color="curriculum", size="index", size_max=30,
+                      y="conv_interview_hired_prcnt", color="curriculum", size="id", size_max=30,
                       labels={
                           "conv_interview_hired_prcnt": "Conversion (%)",
                           "month_year": "Cohort Date",
                           "curriculum": "Curriculum",
-                          "index": "Total Students"},
+                          "id": "Total Students"},
                       title="Interview to Hired Conversion")
 
     fig3 = px.bar(hired, x="curriculum",
